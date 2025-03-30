@@ -3,48 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple H5 Page</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-        header {
-            background-color: #333;
-            color: #fff;
-            padding: 10px;
-            text-align: center;
-        }
-        section {
-            padding: 20px;
-            text-align: center;
-        }
-        footer {
-            background-color: #333;
-            color: #fff;
-            padding: 10px;
-            text-align: center;
-            position: fixed;
-            width: 100%;
-            bottom: 0;
-        }
-    </style>
+    <title>Image Upload</title>
 </head>
 <body>
-    <header>
-        <h1>Welcome to My Simple Page</h1>
-    </header>
+    <div class="container">
+        <form id="uploadForm">
+            <input id="prompt" type="text" value="用中文回答,对图片中的舌头进行中医舌诊，说出是哪一种体质的，并给出三个饮用茶推荐" placeholder="Enter prompt" />
+            <input type="file" id="imageInput" accept="image/*" />
+            <br>
+            <img id="previewImage" src="" alt="Selected Image" style="display: none; width: 200px; height: 200px;" />
+            <br>
+            <button type="button" id="submitBtn">Submit</button>
+        </form>
+        <div id="responseContainer"></div>
+    </div>
     
-    <section>
-        <h2>This is a simple HTML5 page</h2>
-        <p>This page contains a heading, a paragraph, and a button.</p>
-        <button onclick="alert('Button clicked!')">Click Me</button>
-    </section>
-    
-    <footer>
-        <p>&copy; 2025 Simple Page</p>
-    </footer>
+    <script>
+        document.getElementById('imageInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('previewImage').src = e.target.result;
+                    document.getElementById('previewImage').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('submitBtn').addEventListener('click', function() {
+            console.log("sent!");
+            const fileInput = document.getElementById('imageInput');
+            const file = fileInput.files[0];
+            const promptText = document.getElementById('prompt').value;
+
+            if (!file) {
+                alert('Please select an image first.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('prompt', promptText);
+
+            fetch('https://hnyz.pythonanywhere.com/chat-app-api/chat/image-analysis/', {
+                method: 'POST',
+                headers: {
+                    'ApiKey': 'Bearer SdNZKDwWr3AXq7kg0UFPS2t'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Response:', data);
+                document.getElementById('responseContainer').innerText = JSON.stringify(data, null, 2);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('responseContainer').innerText = 'Error: ' + error.message;
+            });
+        });
+    </script>
 </body>
 </html>
